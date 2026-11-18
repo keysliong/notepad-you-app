@@ -8,12 +8,16 @@
 
 [![Скачать для Windows](https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C-Windows-6750A4?style=for-the-badge&logo=windows11&logoColor=white)](https://keysliong.github.io/notepad-you/download/NotepadYou-Setup.exe)
 [![Скачать для Mac](https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C-macOS-8B6FD6?style=for-the-badge&logo=apple&logoColor=white)](https://keysliong.github.io/notepad-you/download/NotepadYou.dmg)
+[![Скачать для Android](https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://keysliong.github.io/notepad-you/download/NotepadYou.apk)
 [![Сайт](https://img.shields.io/badge/%D0%A1%D0%B0%D0%B9%D1%82-notepad--you-C4AEFF?style=for-the-badge&logo=githubpages&logoColor=white)](https://keysliong.github.io/notepad-you/)
 
 ![Rust](https://img.shields.io/badge/Rust-egui%200.29-DEA584?logo=rust&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows11&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-11%2B-black?logo=apple&logoColor=white)
+![Android](https://img.shields.io/badge/Android-8%2B-3DDC84?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
 [![Сборка для macOS](https://github.com/keysliong/notepad-you-app/actions/workflows/macos.yml/badge.svg)](https://github.com/keysliong/notepad-you-app/actions/workflows/macos.yml)
+[![Сборка для Android](https://github.com/keysliong/notepad-you-app/actions/workflows/android.yml/badge.svg)](https://github.com/keysliong/notepad-you-app/actions/workflows/android.yml)
 
 <br>
 
@@ -104,6 +108,24 @@ Emoji рисуются цветными и в редакторе, и в пред
 
 ---
 
+## 📱 Android
+
+<div align="center">
+<img src="docs/media/android.png" width="860" alt="Notepad You на Android: приветствие, список заметок, редактор, настройки в тёмной теме">
+<br>
+<sub>Родное приложение на Kotlin + Jetpack Compose: настоящий Material You с цветами из обоев телефона</sub>
+</div>
+
+<br>
+
+- 🎨 **Цвета из обоев** (Android 12+) или те же 7 тем-печенек, светлая и тёмная тема
+- ✅ В предпросмотре **галочки задач отмечаются пальцем**
+- 🍪 FAB-печенька, панель форматирования над клавиатурой, удаление свайпом с кнопкой «Вернуть»
+- 💾 Заметки сохраняются сами; открытие `.md` из других приложений, «Поделиться», экспорт в файл
+- 🎭 Тематическая иконка Android 13+ перекрашивается под тему телефона
+
+---
+
 ## 📦 Установка
 
 <table>
@@ -125,6 +147,11 @@ Emoji рисуются цветными и в редакторе, и в пред
 1. Скачайте **[NotepadYou.dmg](https://keysliong.github.io/notepad-you/download/NotepadYou.dmg)** (Apple Silicon и Intel).
 2. Перетащите Notepad You в «Программы».
 3. При первом запуске: **Системные настройки → Конфиденциальность и безопасность → Всё равно открыть**.
+
+### Android 8 и новее
+1. Скачайте **[NotepadYou.apk](https://keysliong.github.io/notepad-you/download/NotepadYou.apk)** на телефоне и откройте.
+2. Разрешите установку из этого источника и нажмите «Установить».
+3. Если Play Защита предупредит — **Всё равно установить** (приложения нет в Google Play).
 
 </td>
 <td width="45%" valign="top" align="center">
@@ -171,6 +198,21 @@ rustup default stable-x86_64-pc-windows-gnu
 </details>
 
 <details>
+<summary><b>Android</b></summary>
+
+Проект Gradle — в папке `android/` (Kotlin + Jetpack Compose, Material 3). Нужны JDK 17 и Android SDK:
+
+```bash
+cd android && gradle assembleRelease   # → app/build/outputs/apk/release/app-release.apk
+```
+
+APK собирается в [GitHub Actions](https://github.com/keysliong/notepad-you-app/actions/workflows/android.yml),
+а [проверка в эмуляторе](https://github.com/keysliong/notepad-you-app/actions/workflows/android-test.yml)
+проходит по экранам, снимает скриншоты и ищет падения. Иконка генерируется `android/tools/gen_icon.py`.
+
+</details>
+
+<details>
 <summary><b>macOS</b></summary>
 
 ```bash
@@ -208,12 +250,13 @@ $env:NPY_DEMO="themes"; $env:NPY_RECORD="кадры"; $env:NPY_SCALE="1"; .\targ
 | `src/demo.rs` | демо-режим для записи гифок |
 | `installer/` | установщик и удалятор для Windows |
 | `macos/` | сборка `.app` и `.dmg` |
+| `android/` | приложение для Android (Kotlin + Jetpack Compose) |
 
 ---
 
 <div align="center">
 
-Сделано на **Rust** и **[egui](https://github.com/emilk/egui)** · шрифты **Nunito** и **JetBrains Mono** (SIL OFL 1.1)
+Сделано на **Rust** + **[egui](https://github.com/emilk/egui)** и **Kotlin** + **Jetpack Compose** · шрифты **Nunito** и **JetBrains Mono** (SIL OFL 1.1)
 
 <a href="https://keysliong.github.io/notepad-you/"><b>keysliong.github.io/notepad-you</b></a>
 

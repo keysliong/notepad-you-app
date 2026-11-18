@@ -3,6 +3,12 @@ name: Сборка для macOS
 on:
   push:
     branches: [main]
+    # Изменения только в Android-версии или README не пересобирают Mac
+    paths-ignore:
+      - "android/**"
+      - ".github/workflows/android.yml"
+      - "README.md"
+      - "docs/**"
   workflow_dispatch:
 
 jobs:

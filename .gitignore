@@ -7,3 +7,10 @@
 *.dmg
 icon/NotepadYou-1024.png
 .claude/
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+# Ключ подписи APK — хранить у себя, в git не класть!
+android/signing/

@@ -380,6 +380,9 @@ fn lerp_rect(a: Rect, b: Rect, t: f32) -> Rect {
 
 pub struct NotepadApp {
     settings: Settings,
+    /// Скрытый демо-режим для записи гифок (см. demo.rs)
+    demo: Option<crate::demo::Demo>,
+    demo_sized: bool,
     /// Цветные смайлики и галочки (см. emoji.rs)
     emoji: std::sync::Arc<crate::emoji::Emoji>,
     logo: egui::TextureHandle,
@@ -416,10 +419,12 @@ pub struct NotepadApp {
 
 impl NotepadApp {
     pub fn new(cc: &eframe::CreationContext<'_>, file: Option<PathBuf>) -> Self {
-        let settings: Settings = cc
-            .storage
-            .and_then(|s| eframe::get_value(s, eframe::APP_KEY))
-            .unwrap_or_default();
+        let demo = crate::demo::Demo::from_env();
+        let settings: Settings = if demo.is_some() {
+            Settings { tutorial_done: true, ..Default::default() }
+        } else {
+            cc.storage.and_then(|s| eframe::get_value(s, eframe::APP_KEY)).unwrap_or_default()
+        };
         let has_icons = theme::setup_fonts(&cc.egui_ctx, settings.font);
         let pal = Palette::new(settings.seed, settings.dark);
 
@@ -427,6 +432,8 @@ impl NotepadApp {
         let emoji = crate::emoji::Emoji::new();
         cc.egui_ctx.add_texture_loader(std::sync::Arc::new(crate::emoji::Loader(emoji.clone())));
         let mut app = Self {
+            demo,
+            demo_sized: false,
             emoji,
             window_icon_sent: false,
             logo,
@@ -457,6 +464,20 @@ impl NotepadApp {
             icons: if has_icons { widgets::MDL2 } else { widgets::FALLBACK },
         };
 
+        if app.demo.is_some() {
+            // Демо: свои заметки, без сессии и файлов пользователя
+            for (name, text) in [
+                ("Планы на выходные", crate::demo::NOTE),
+                ("Идеи для проекта", crate::demo::NOTE2),
+                ("Конспект", crate::demo::NOTE3),
+            ] {
+                let id = app.alloc_id();
+                app.docs.push(Doc::new(id, None, name.into(), text.into(), false));
+            }
+            app.active = 0;
+            return app;
+        }
+
         // Восстанавливаем прошлую сессию
         let session = std::mem::take(&mut app.settings.session);
         for p in &session {
@@ -478,6 +499,73 @@ impl NotepadApp {
             app.start_tutorial();
         }
         app
+    }
+
+    // ------------------------------------------------------------ демо-режим
+
+    /// Выполняет шаги сценария, время которых наступило.
+    fn demo_tick(&mut self, ctx: &egui::Context) {
+        use crate::demo::Act;
+        let Some(mut d) = self.demo.take() else { return };
+        ctx.request_repaint();
+        if !self.demo_sized {
+            ctx.send_viewport_cmd(ViewportCommand::InnerSize(vec2(1180.0, 740.0)));
+            self.demo_sized = true;
+        }
+        if let Some(t) = d.elapsed() {
+            for act in d.due(t) {
+                match act {
+                    Act::Seed(s) => self.settings.seed = s,
+                    Act::Dark(b) => self.settings.dark = b,
+                    Act::Settings(b) => self.settings_open = b,
+                    Act::NewDoc => self.new_doc(),
+                    Act::Type(s) => d.start_typing(s, t),
+                    Act::View(v) => self.settings.view = v,
+                    Act::Select(i) if i < self.docs.len() => self.active = i,
+                    Act::Close(i) if i < self.docs.len() => self.request_close(i),
+                    Act::TutStart => self.start_tutorial(),
+                    Act::TutNext => {
+                        if let Some(mut tut) = self.tutorial.take() {
+                            self.tut_advance(&mut tut);
+                            self.tutorial = Some(tut);
+                        }
+                    }
+                    Act::End => {
+                        d.finish();
+                        self.force_exit = true;
+                        ctx.send_viewport_cmd(ViewportCommand::Close);
+                    }
+                    _ => {}
+                }
+            }
+            if let Some(s) = d.typed_chars(t) {
+                let doc = &mut self.docs[self.active];
+                doc.text.push_str(&s);
+                doc.dirty = true;
+            }
+        }
+        self.demo = Some(d);
+    }
+
+    /// Сохраняет полученные скриншоты и запрашивает следующий.
+    fn demo_record(&mut self, ctx: &egui::Context) {
+        let Some(d) = &mut self.demo else { return };
+        let shots: Vec<std::sync::Arc<egui::ColorImage>> = ctx.input(|i| {
+            i.raw
+                .events
+                .iter()
+                .filter_map(|e| match e {
+                    egui::Event::Screenshot { image, .. } => Some(image.clone()),
+                    _ => None,
+                })
+                .collect()
+        });
+        for img in shots {
+            d.save_frame(&img);
+        }
+        if d.wants_screenshot() {
+            ctx.send_viewport_cmd(ViewportCommand::Screenshot);
+        }
     }
 
     // ------------------------------------------------------------ обучение
@@ -910,7 +998,8 @@ impl NotepadApp {
         if hit(sc(cmd, Key::W)) {
             self.request_close(self.active);
         }
-        if hit(sc(cmd, Key::Tab)) && !self.docs.is_empty() {
+        // Именно Ctrl (а не ⌘): на Mac ⌘+Tab занят переключением программ
+        if hit(sc(Modifiers::CTRL, Key::Tab)) && !self.docs.is_empty() {
             self.active = (self.active + 1) % self.docs.len();
         }
         if hit(sc(cmd, Key::E)) {
@@ -1662,6 +1751,7 @@ fn preview_ui(ui: &mut Ui, doc: &mut Doc, p: &Palette, size: f32, card: bool, em
 
 impl eframe::App for NotepadApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        self.demo_tick(ctx);
         // Плавный переход цветов при смене темы / тёмного режима
         let target = Palette::new(self.settings.seed, self.settings.dark);
         let key = (self.settings.seed, self.settings.dark);
@@ -1728,9 +1818,13 @@ impl eframe::App for NotepadApp {
         self.dialogs(ctx, &p);
         self.overlays(ctx, &p);
         self.tutorial_ui(ctx, &p);
+        self.demo_record(ctx);
     }
 
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        if self.demo.is_some() {
+            return; // демо-режим ничего не сохраняет
+        }
         let with_path: Vec<usize> = (0..self.docs.len()).filter(|&i| self.docs[i].path.is_some()).collect();
         self.settings.session = with_path.iter().filter_map(|&i| self.docs[i].path.clone()).collect();
         self.settings.active = with_path.iter().position(|&i| i == self.active).unwrap_or(0);

@@ -1,0 +1,8 @@
+/target
+/dist
+# Сайт живёт в отдельном репозитории (keysliong/notepad-you)
+/site
+# Готовые файлы — собираются build.ps1 / macos/bundle.sh
+*.exe
+icon/NotepadYou-1024.png
+.claude/

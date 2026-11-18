@@ -1,0 +1,15 @@
+[package]
+name = "notepad-you-setup"
+version = "1.1.0"
+edition = "2021"
+description = "Установщик Notepad You"
+
+[[bin]]
+name = "NotepadYou-Setup"
+path = "src/main.rs"
+
+[dependencies]
+eframe = "0.29"
+rfd = "0.15"
+serde = { version = "1", features = ["derive"] }
+winreg = "0.52"

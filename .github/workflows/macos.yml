@@ -1,0 +1,34 @@
+name: Сборка для macOS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Кэш cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: macos-cargo-${{ hashFiles('Cargo.lock') }}
+
+      - name: Сборка .app и .dmg
+        run: bash macos/bundle.sh
+
+      - name: Загрузить NotepadYou.dmg
+        uses: actions/upload-artifact@v4
+        with:
+          name: NotepadYou-macOS
+          path: dist/NotepadYou.dmg
+          if-no-files-found: error

@@ -31,6 +31,7 @@ for node in re.findall(r"<node [^>]*>", xml):
         break
 EOF
 )
+  if [ -z "$xy" ] && [ "${2:-}" != "retry" ]; then sleep 2; tap "$1" retry; return $?; fi
   if [ -z "$xy" ]; then echo "не найдено: $1"; return 1; fi
   adb shell input tap $xy
   echo "нажато: $1 ($xy)"
@@ -46,6 +47,10 @@ tap "Настройки" && sleep 2 && shot 6-settings
 tap "Коралл" && sleep 2 && shot 7-settings-coral
 adb shell cmd uimode night yes && sleep 4 && shot 8-settings-dark
 adb shell input keyevent KEYCODE_BACK && sleep 2 && shot 9-list-dark
+# Поворот экрана не должен сбрасывать открытую заметку
+tap "Добро пожаловать" && sleep 2
+adb shell settings put system accelerometer_rotation 0
+adb shell settings put system user_rotation 1 && sleep 3 && shot 10-editor-landscape
 
 # Падения приложения
 adb logcat -d -b crash > "$OUT/crash.txt"

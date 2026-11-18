@@ -14,6 +14,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
+            android:configChanges="uiMode|orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|density|locale|layoutDirection|fontScale"
             android:windowSoftInputMode="adjustResize">
 
             <intent-filter>

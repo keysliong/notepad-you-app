@@ -96,7 +96,7 @@ fun SettingsScreen(prefs: Prefs, onBack: () -> Unit) {
             item {
                 Section("Тема") {
                     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                        listOf("Как в системе", "Светлая", "Тёмная").forEachIndexed { i, label ->
+                        listOf("Авто", "Светлая", "Тёмная").forEachIndexed { i, label ->
                             SegmentedButton(
                                 selected = prefs.themeMode == i,
                                 onClick = { prefs.themeMode = i },
@@ -173,15 +173,18 @@ private fun Swatch(seed: Seed, selected: Boolean, dark: Boolean, onClick: () -> 
     val onColor = seedScheme(seed, dark).onPrimary
     val rot by animateFloatAsState(if (selected) 30f else 0f, spring(Spring.DampingRatioMediumBouncy), label = "r")
     val scale by animateFloatAsState(if (selected) 1f else 0.86f, spring(Spring.DampingRatioMediumBouncy), label = "s")
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    // Нажимать можно и на печеньку, и на подпись под ней
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clip(RoundedCornerShape(16.dp)).clickable(onClick = onClick).padding(2.dp),
+    ) {
         Box(
             Modifier
                 .size(56.dp)
                 .graphicsLayer { rotationZ = rot; scaleX = scale; scaleY = scale }
                 .clip(CookieShape(7, 0.1f))
                 .background(color)
-                .then(if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CookieShape(7, 0.1f)) else Modifier)
-                .clickable(onClick = onClick),
+                .then(if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CookieShape(7, 0.1f)) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             val check by animateFloatAsState(if (selected) 1f else 0f, spring(Spring.DampingRatioMediumBouncy), label = "c")

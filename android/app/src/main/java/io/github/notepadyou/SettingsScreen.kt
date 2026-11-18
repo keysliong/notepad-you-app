@@ -1,14 +1,9 @@
 package io.github.notepadyou
 
 import android.os.Build
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -189,9 +184,11 @@ private fun Swatch(seed: Seed, selected: Boolean, dark: Boolean, onClick: () -> 
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {
-            AnimatedVisibility(selected, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
-                Icon(Icons.Filled.Check, null, tint = onColor, modifier = Modifier.graphicsLayer { rotationZ = -rot })
-            }
+            val check by animateFloatAsState(if (selected) 1f else 0f, spring(Spring.DampingRatioMediumBouncy), label = "c")
+            Icon(
+                Icons.Filled.Check, null, tint = onColor,
+                modifier = Modifier.graphicsLayer { rotationZ = -rot; alpha = check; scaleX = check; scaleY = check },
+            )
         }
         Text(seed.title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }

@@ -4,5 +4,6 @@
 /site
 # Готовые файлы — собираются build.ps1 / macos/bundle.sh
 *.exe
+*.dmg
 icon/NotepadYou-1024.png
 .claude/

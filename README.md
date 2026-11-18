@@ -48,6 +48,14 @@ Ctrl+E — режим просмотра, Ctrl+Tab — следующая зам
 (репозиторий https://github.com/keysliong/notepad-you — в нём только папка `site/`).
 Обновить сайт после изменений: `.\build.ps1`, затем `.\publish.ps1`.
 
+## macOS
+Версия для Mac собирается на GitHub Actions (`.github/workflows/macos.yml`) при каждом
+пуше в `main`: универсальное приложение (Apple Silicon + Intel), `.app` с иконкой и образ
+`NotepadYou.dmg` — его можно скачать во вкладке Actions репозитория
+https://github.com/keysliong/notepad-you-app. На самом Mac: `bash macos/bundle.sh`.
+Приложение подписано ad-hoc (без сертификата Apple), поэтому при первом запуске нужно
+разрешить его в «Системные настройки → Конфиденциальность и безопасность → Всё равно открыть».
+
 ## Сборка
 Нужны Rust (тулчейн `stable-x86_64-pc-windows-gnu`) и MinGW-w64 (WinLibs). Затем:
 
